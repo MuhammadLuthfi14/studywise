@@ -1,11 +1,10 @@
 // Abstraksi HTTP client untuk StudyWise.
 //
-// Saat ini lapisan service masih memakai mock data. Ketika backend FastAPI siap,
-// cukup arahkan service untuk memanggil `apiRequest` di bawah ini, dan set
-// VITE_API_URL pada environment.
+// Frontend membaca URL backend dari VITE_API_URL. Jika env belum diisi,
+// fallback lokal memakai FastAPI pada port 8000.
 
 export const BASE_URL: string =
-  (import.meta as any).env?.VITE_API_URL ?? "http://localhost:8000";
+  import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
 // Simulasi latency jaringan agar UI loading state terasa realistis.
 export function delay<T>(data: T, ms = 500): Promise<T> {
@@ -20,7 +19,6 @@ function getToken(): string | null {
   }
 }
 
-// Bersihkan sesi dan arahkan ke login — dipakai saat backend mengembalikan 401.
 function handleUnauthorized(): never {
   try {
     sessionStorage.removeItem("studywise_token");
@@ -32,7 +30,6 @@ function handleUnauthorized(): never {
   throw new Error("Sesi berakhir. Silakan masuk kembali.");
 }
 
-// Helper request nyata — belum dipakai selama mode mock, namun sudah siap.
 export async function apiRequest<T>(
   path: string,
   options: RequestInit = {},
@@ -51,10 +48,22 @@ export async function apiRequest<T>(
     handleUnauthorized();
   }
 
+  const rawBody = await res.text();
+
   if (!res.ok) {
-    const message = await res.text().catch(() => res.statusText);
+    let message = rawBody || res.statusText;
+    try {
+      const body = JSON.parse(rawBody) as { detail?: unknown };
+      if (typeof body.detail === "string") message = body.detail;
+    } catch {
+      /* gunakan rawBody */
+    }
     throw new Error(message || `Request gagal (${res.status})`);
   }
 
-  return res.json() as Promise<T>;
+  if (!rawBody) {
+    return undefined as T;
+  }
+
+  return JSON.parse(rawBody) as T;
 }
