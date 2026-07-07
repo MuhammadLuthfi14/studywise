@@ -1,7 +1,7 @@
-// Context autentikasi StudyWise. Menyimpan user + token mock di sessionStorage.
-// Saat backend siap, token nyata dari /auth/login akan dipakai pada header Authorization.
+// Context autentikasi StudyWise. Menyimpan user + JWT di sessionStorage
+// agar refresh/deep-link halaman terlindungi tetap mengenali sesi aktif.
 
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useContext, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import * as authService from "../services/authService";
 import type { LoginCredentials, RegisterData, User } from "../types";
@@ -17,6 +17,17 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
+function readStoredUser(): User | null {
+  try {
+    const token = sessionStorage.getItem("studywise_token");
+    const raw = sessionStorage.getItem("studywise_user");
+    if (!token || !raw) return null;
+    return JSON.parse(raw) as User;
+  } catch {
+    return null;
+  }
+}
+
 function persist(token: string, user: User) {
   try {
     sessionStorage.setItem("studywise_token", token);
@@ -27,18 +38,8 @@ function persist(token: string, user: User) {
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(() => readStoredUser());
   const [loading, setLoading] = useState(false);
-
-  // Pulihkan sesi dari sessionStorage saat aplikasi dimuat.
-  useEffect(() => {
-    try {
-      const raw = sessionStorage.getItem("studywise_user");
-      if (raw) setUser(JSON.parse(raw) as User);
-    } catch {
-      /* abaikan */
-    }
-  }, []);
 
   const value = useMemo<AuthContextValue>(
     () => ({
