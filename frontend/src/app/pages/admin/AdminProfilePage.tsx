@@ -3,6 +3,7 @@ import { UserCog } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "../../components/PageHeader";
 import { RoleBadge } from "../../components/RoleBadge";
+import { PasswordInput } from "../../components/PasswordInput";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
@@ -19,11 +20,11 @@ export function AdminProfilePage() {
   if (!user) return null;
 
   async function savePassword() {
-    if (!pwLama) {
+    if (!pwLama.trim()) {
       toast.error("Kata sandi lama wajib diisi.");
       return;
     }
-    if (pwBaru.length < 6) {
+    if (pwBaru.trim().length < 6) {
       toast.error("Kata sandi baru minimal 6 karakter.");
       return;
     }
@@ -67,12 +68,12 @@ export function AdminProfilePage() {
             <h3>Data Akun</h3>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label>Nama</Label>
-                <Input value={user.nama} disabled className="bg-muted text-muted-foreground" />
+                <Label htmlFor="admin-nama">Nama</Label>
+                <Input id="admin-nama" autoComplete="name" value={user.nama} disabled className="bg-muted text-muted-foreground" />
               </div>
               <div className="space-y-2">
-                <Label>Email</Label>
-                <Input value={user.email} disabled className="bg-muted text-muted-foreground" />
+                <Label htmlFor="admin-email">Email</Label>
+                <Input id="admin-email" type="email" autoComplete="email" value={user.email} disabled className="bg-muted text-muted-foreground" />
               </div>
             </div>
 
@@ -82,9 +83,9 @@ export function AdminProfilePage() {
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="pw-lama">Kata Sandi Lama</Label>
-                <Input
+                <PasswordInput
                   id="pw-lama"
-                  type="password"
+                  autoComplete="current-password"
                   placeholder="••••••••"
                   value={pwLama}
                   onChange={(e) => setPwLama(e.target.value)}
@@ -92,9 +93,9 @@ export function AdminProfilePage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="pw-baru">Kata Sandi Baru</Label>
-                <Input
+                <PasswordInput
                   id="pw-baru"
-                  type="password"
+                  autoComplete="new-password"
                   placeholder="Minimal 6 karakter"
                   value={pwBaru}
                   onChange={(e) => setPwBaru(e.target.value)}
@@ -102,7 +103,7 @@ export function AdminProfilePage() {
               </div>
             </div>
             <div className="flex justify-end">
-              <Button onClick={savePassword} disabled={saving || (!pwLama && !pwBaru)}>
+              <Button onClick={savePassword} disabled={saving || (!pwLama.trim() && !pwBaru.trim())}>
                 {saving ? "Menyimpan..." : "Simpan Kata Sandi"}
               </Button>
             </div>

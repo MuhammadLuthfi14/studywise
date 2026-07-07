@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
+import { PasswordInput } from "../components/PasswordInput";
 import { Label } from "../components/ui/label";
 import { Card, CardContent } from "../components/ui/card";
 import { Alert, AlertDescription } from "../components/ui/alert";
@@ -19,14 +20,15 @@ export function LoginPage() {
 
   async function submit(emailValue: string, passwordValue: string) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(emailValue.trim())) {
+    const trimmedEmail = emailValue.trim();
+    if (!emailRegex.test(trimmedEmail)) {
       setError("Format email tidak valid.");
       return;
     }
     setError(null);
     setLoading(true);
     try {
-      const user = await login({ email: emailValue, password: passwordValue });
+      const user = await login({ email: trimmedEmail, password: passwordValue });
       navigate(user.role === "admin" ? "/admin/beranda" : "/app/beranda", {
         replace: true,
       });
@@ -72,6 +74,7 @@ export function LoginPage() {
                 <Input
                   id="email"
                   type="email"
+                  autoComplete="email"
                   placeholder="nama@studywise.ac.id"
                   className="h-10 xs:h-11"
                   value={email}
@@ -84,9 +87,9 @@ export function LoginPage() {
                 <Label htmlFor="password" className="text-xs font-medium xs:text-sm">
                   Kata Sandi
                 </Label>
-                <Input
+                <PasswordInput
                   id="password"
-                  type="password"
+                  autoComplete="current-password"
                   placeholder="••••••••"
                   className="h-10 xs:h-11"
                   value={password}

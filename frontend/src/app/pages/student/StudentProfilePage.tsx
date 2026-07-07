@@ -3,6 +3,7 @@ import { Save, X } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "../../components/PageHeader";
 import { RoleBadge } from "../../components/RoleBadge";
+import { PasswordInput } from "../../components/PasswordInput";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
@@ -29,6 +30,7 @@ function getAvatar(jenis_kelamin?: string): string | undefined {
 }
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const nimRegex = /^\d{10}$/;
 
 export function StudentProfilePage() {
   const { user, updateUser } = useAuth();
@@ -72,12 +74,16 @@ export function StudentProfilePage() {
       toast.error("Format email tidak valid.");
       return;
     }
+    if (nim.trim() && !nimRegex.test(nim.trim())) {
+      toast.error("NIM harus berupa 10 digit angka.");
+      return;
+    }
     if (pwBaru) {
-      if (!pwLama) {
+      if (!pwLama.trim()) {
         toast.error("Kata sandi lama wajib diisi untuk mengganti kata sandi.");
         return;
       }
-      if (pwBaru.length < 6) {
+      if (pwBaru.trim().length < 6) {
         toast.error("Kata sandi baru minimal 6 karakter.");
         return;
       }
@@ -159,6 +165,7 @@ export function StudentProfilePage() {
                 <Label htmlFor="nama">Nama Lengkap</Label>
                 <Input
                   id="nama"
+                  autoComplete="name"
                   value={nama}
                   disabled={!editing}
                   onChange={(e) => setNama(e.target.value)}
@@ -169,6 +176,7 @@ export function StudentProfilePage() {
                 <Input
                   id="email"
                   type="email"
+                  autoComplete="email"
                   value={email}
                   disabled={!editing}
                   onChange={(e) => setEmail(e.target.value)}
@@ -178,6 +186,7 @@ export function StudentProfilePage() {
                 <Label htmlFor="nim">NIM</Label>
                 <Input
                   id="nim"
+                  autoComplete="username"
                   value={nim}
                   disabled={!editing}
                   onChange={(e) => setNim(e.target.value)}
@@ -185,13 +194,13 @@ export function StudentProfilePage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Jenis Kelamin</Label>
+                <Label htmlFor="profile-jenis-kelamin">Jenis Kelamin</Label>
                 <Select
                   value={jenisKelamin}
                   onValueChange={(v) => setJenisKelamin(v as "laki-laki" | "perempuan")}
                   disabled={!editing}
                 >
-                  <SelectTrigger className={!editing ? "bg-muted text-muted-foreground" : ""}>
+                  <SelectTrigger id="profile-jenis-kelamin" className={!editing ? "bg-muted text-muted-foreground" : ""}>
                     <SelectValue placeholder="Pilih jenis kelamin" />
                   </SelectTrigger>
                   <SelectContent>
@@ -201,7 +210,7 @@ export function StudentProfilePage() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Program Studi</Label>
+                <Label htmlFor="profile-program-studi">Program Studi</Label>
                 <Select
                   value={programStudi}
                   onValueChange={(v) => {
@@ -210,7 +219,7 @@ export function StudentProfilePage() {
                   }}
                   disabled={!editing}
                 >
-                  <SelectTrigger className={!editing ? "bg-muted text-muted-foreground" : ""}>
+                  <SelectTrigger id="profile-program-studi" className={!editing ? "bg-muted text-muted-foreground" : ""}>
                     <SelectValue placeholder="Pilih program studi" />
                   </SelectTrigger>
                   <SelectContent>
@@ -221,13 +230,13 @@ export function StudentProfilePage() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Semester</Label>
+                <Label htmlFor="profile-semester">Semester</Label>
                 <Select
                   value={semester}
                   onValueChange={setSemester}
                   disabled={!editing || !programStudi}
                 >
-                  <SelectTrigger className={!editing ? "bg-muted text-muted-foreground" : ""}>
+                  <SelectTrigger id="profile-semester" className={!editing ? "bg-muted text-muted-foreground" : ""}>
                     <SelectValue
                       placeholder={
                         !editing
@@ -255,9 +264,9 @@ export function StudentProfilePage() {
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="pw-lama">Kata Sandi Lama</Label>
-                <Input
+                <PasswordInput
                   id="pw-lama"
-                  type="password"
+                  autoComplete="current-password"
                   placeholder="••••••••"
                   disabled={!editing}
                   value={pwLama}
@@ -266,9 +275,9 @@ export function StudentProfilePage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="pw-baru">Kata Sandi Baru</Label>
-                <Input
+                <PasswordInput
                   id="pw-baru"
-                  type="password"
+                  autoComplete="new-password"
                   placeholder="Minimal 6 karakter"
                   disabled={!editing}
                   value={pwBaru}
