@@ -146,10 +146,10 @@ export function ConsultationPage() {
       {/* Aksi (sticky) */}
       <div className="sticky bottom-0 -mx-4 border-t border-border bg-card/95 p-4 backdrop-blur sm:-mx-6">
         <div className="mx-auto flex max-w-6xl flex-col gap-2 sm:flex-row sm:justify-end">
-          <Button variant="outline" onClick={reset} disabled={answeredCount === 0}>
+          <Button className="min-h-11" variant="outline" onClick={reset} disabled={answeredCount === 0}>
             <RotateCcw className="size-4" /> Reset Jawaban
           </Button>
-          <Button onClick={process} disabled={processing}>
+          <Button className="min-h-11" onClick={process} disabled={processing}>
             <Send className="size-4" />
             {processing ? "Memproses..." : "Proses Rekomendasi"}
           </Button>

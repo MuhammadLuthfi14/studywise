@@ -42,7 +42,7 @@ export function Topbar({ onOpenMenu }: { onOpenMenu: () => void }) {
       <Button
         variant="ghost"
         size="icon"
-        className="lg:hidden"
+        className="size-11 lg:hidden"
         onClick={onOpenMenu}
         aria-label="Buka menu"
       >
@@ -73,7 +73,7 @@ export function Topbar({ onOpenMenu }: { onOpenMenu: () => void }) {
             <DropdownMenuTrigger asChild>
               <button
                 aria-label={`Menu akun ${user.nama}`}
-                className="flex items-center gap-2 rounded-full p-1 pr-2 transition-colors hover:bg-muted focus:outline-none focus:ring-2 focus:ring-sw-primary/50"
+                className="flex min-h-11 items-center gap-2 rounded-full p-1 pr-2 transition-colors hover:bg-muted focus:outline-none focus:ring-2 focus:ring-sw-primary/50"
               >
                 <Avatar className="size-9">
                   {avatarSrc && <AvatarImage src={avatarSrc} alt={user.nama} className="object-cover" />}
