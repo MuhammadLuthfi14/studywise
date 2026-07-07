@@ -1,6 +1,7 @@
 import { RouterProvider } from "react-router";
 import { AuthProvider } from "./context/AuthContext";
 import { ConsultationProvider } from "./context/ConsultationContext";
+import { AppErrorBoundary } from "./components/AppErrorBoundary";
 import { Toaster } from "./components/ui/sonner";
 import { router } from "./routes";
 
@@ -22,7 +23,9 @@ export default function App() {
   return (
     <AuthProvider>
       <ConsultationProvider>
-        <RouterProvider router={router} />
+        <AppErrorBoundary>
+          <RouterProvider router={router} />
+        </AppErrorBoundary>
         <Toaster richColors position="top-right" />
       </ConsultationProvider>
     </AuthProvider>
