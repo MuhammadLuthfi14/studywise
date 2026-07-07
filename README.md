@@ -32,10 +32,10 @@ StudyWise adalah sistem pakar berbasis web untuk merekomendasikan strategi belaj
 ```bash
 cd backend
 python -m pip install -r requirements.txt
-uvicorn app.main:app --reload
+uvicorn app.main:app --host 127.0.0.1 --port 8010 --reload
 ```
 
-Backend berjalan di `http://localhost:8000`. Saat pertama boot, database SQLite dan seed data dibuat otomatis.
+Backend berjalan di `http://127.0.0.1:8010`. Saat pertama boot, database SQLite dan seed data dibuat otomatis.
 
 ## Menjalankan Frontend
 
@@ -55,6 +55,29 @@ Salin contoh env sesuai kebutuhan:
 - `frontend/.env.example`
 
 Jangan commit file `.env` atau database SQLite (`*.db`) ke repo public.
+
+## Deploy
+
+### Backend Render
+
+- Root directory: `backend`
+- Build command: `pip install -r requirements.txt`
+- Start command: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+- Persistent disk: mount path `/var/data`
+- `SECRET_KEY=<secret-kuat-baru>`
+- `DATABASE_URL=sqlite:////var/data/studywise.db`
+- `CORS_ORIGINS=https://<url-vercel-final>,http://localhost:5173`
+
+File `render.yaml` tersedia sebagai blueprint awal. Setelah URL Vercel final tersedia, update `CORS_ORIGINS` di Render lalu redeploy backend.
+
+### Frontend Vercel
+
+- Root directory: `frontend`
+- Build command: `npm run build`
+- Output directory: `dist`
+- Environment variable: `VITE_API_URL=https://<url-backend-render>`
+
+`frontend/vercel.json` sudah berisi SPA rewrite agar refresh deep route seperti `/app/konsultasi` dan `/admin/basis-pengetahuan` tidak 404.
 
 ## Akun Demo
 
