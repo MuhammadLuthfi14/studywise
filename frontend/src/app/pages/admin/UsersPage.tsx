@@ -26,6 +26,9 @@ import {
 } from "../../utils/constants";
 import type { User } from "../../types";
 
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const nimRegex = /^\d{10}$/;
+
 export function UsersPage() {
   const [items, setItems] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -59,9 +62,23 @@ export function UsersPage() {
   }
   async function save() {
     if (!draft) return;
+    const validationMessage = validateUserDraft(draft);
+    if (validationMessage) {
+      toast.error(validationMessage);
+      return;
+    }
+
+    const normalizedDraft: User = {
+      ...draft,
+      nama: draft.nama.trim(),
+      email: draft.email.trim(),
+      nim: draft.nim?.trim() || undefined,
+      program_studi: draft.program_studi?.trim() || undefined,
+    };
+
     setSaving(true);
     try {
-      await kb.saveUser(draft);
+      await kb.saveUser(normalizedDraft);
       await refresh();
       setOpen(false);
       toast.success("Data pengguna berhasil disimpan.");
@@ -99,7 +116,7 @@ export function UsersPage() {
       className: "w-28 text-right",
       render: (r) => (
         <div className="flex justify-end gap-1">
-          <Button variant="ghost" size="icon" onClick={() => edit(r)} aria-label="Edit">
+          <Button variant="ghost" size="icon" className="size-11" onClick={() => edit(r)} aria-label="Edit">
             <Pencil className="size-4" />
           </Button>
           {r.role !== "admin" ? (
@@ -118,7 +135,7 @@ export function UsersPage() {
                   variant="ghost"
                   size="icon"
                   aria-label="Nonaktifkan / Aktifkan"
-                  className={r.status === "aktif" ? "text-destructive hover:text-destructive" : "text-sw-success"}
+                  className={r.status === "aktif" ? "size-11 text-destructive hover:text-destructive" : "size-11 text-sw-success"}
                 >
                   <Power className="size-4" />
                 </Button>
@@ -157,32 +174,32 @@ export function UsersPage() {
         title={draft && items.some((i) => i.id === draft.id) ? "Edit Pengguna" : "Tambah Mahasiswa"}
         description="Akun yang dibuat di sini otomatis berperan sebagai mahasiswa."
         onSubmit={save}
-        submitDisabled={!draft?.nama || !draft?.email}
+        submitDisabled={!draft || !draft.nama.trim() || !draft.email.trim()}
         loading={saving}
       >
         {draft ? (
           <>
             <div className="space-y-2">
-              <Label>Nama Lengkap</Label>
-              <Input value={draft.nama} onChange={(e) => setDraft({ ...draft, nama: e.target.value })} />
+              <Label htmlFor="user-nama">Nama Lengkap</Label>
+              <Input id="user-nama" autoComplete="name" value={draft.nama} onChange={(e) => setDraft({ ...draft, nama: e.target.value })} />
             </div>
             <div className="space-y-2">
-              <Label>Email</Label>
-              <Input type="email" value={draft.email} onChange={(e) => setDraft({ ...draft, email: e.target.value })} />
+              <Label htmlFor="user-email">Email</Label>
+              <Input id="user-email" type="email" autoComplete="email" value={draft.email} onChange={(e) => setDraft({ ...draft, email: e.target.value })} />
             </div>
             {isMahasiswa ? (
               <>
                 <div className="space-y-2">
-                  <Label>NIM</Label>
-                  <Input value={draft.nim ?? ""} onChange={(e) => setDraft({ ...draft, nim: e.target.value })} />
+                  <Label htmlFor="user-nim">NIM</Label>
+                  <Input id="user-nim" autoComplete="username" value={draft.nim ?? ""} onChange={(e) => setDraft({ ...draft, nim: e.target.value })} />
                 </div>
                 <div className="space-y-2">
-                  <Label>Program Studi</Label>
+                  <Label htmlFor="user-program-studi">Program Studi</Label>
                   <Select
                     value={draft.program_studi ?? ""}
                     onValueChange={(v) => setDraft({ ...draft, program_studi: v, semester: undefined })}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger id="user-program-studi">
                       <SelectValue placeholder="Pilih program studi" />
                     </SelectTrigger>
                     <SelectContent>
@@ -193,13 +210,13 @@ export function UsersPage() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label>Semester</Label>
+                  <Label htmlFor="user-semester">Semester</Label>
                   <Select
                     value={draft.semester ? String(draft.semester) : ""}
                     onValueChange={(v) => setDraft({ ...draft, semester: Number(v) })}
                     disabled={!draft.program_studi}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger id="user-semester">
                       <SelectValue placeholder={draft.program_studi ? "Pilih semester" : "Pilih prodi dahulu"} />
                     </SelectTrigger>
                     <SelectContent>
@@ -216,4 +233,18 @@ export function UsersPage() {
       </FormModal>
     </div>
   );
+}
+
+function validateUserDraft(draft: User): string | null {
+  if (!draft.nama.trim()) return "Nama tidak boleh kosong.";
+  if (!emailRegex.test(draft.email.trim())) return "Format email tidak valid.";
+
+  if (draft.role === "mahasiswa") {
+    if (!draft.nim?.trim()) return "NIM wajib diisi.";
+    if (!nimRegex.test(draft.nim.trim())) return "NIM harus berupa 10 digit angka.";
+    if (!draft.program_studi?.trim()) return "Program studi wajib dipilih.";
+    if (!draft.semester) return "Semester wajib dipilih.";
+  }
+
+  return null;
 }

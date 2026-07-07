@@ -32,6 +32,12 @@ import {
 import * as kb from "../../services/knowledgeService";
 import type { Recommendation, Rule, Status, Symptom } from "../../types";
 
+const codePatterns = {
+  G: /^G\d{2}$/,
+  O: /^O\d{2}$/,
+  R: /^R\d{2}$/,
+};
+
 export function KnowledgeBasePage() {
   return (
     <div className="space-y-4 sm:space-y-5 lg:space-y-6">
@@ -76,6 +82,7 @@ function SymptomTab() {
   const [saving, setSaving] = useState(false);
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<Symptom | null>(null);
+  const [editingCode, setEditingCode] = useState<string | null>(null);
 
   useEffect(() => {
     kb.listSymptoms().then((d) => {
@@ -85,20 +92,42 @@ function SymptomTab() {
   }, []);
 
   function add() {
+    setEditingCode(null);
     setDraft({ code: nextCode("G", items.map((i) => i.code)), name: "", status: "aktif" });
     setOpen(true);
   }
   function edit(item: Symptom) {
+    setEditingCode(item.code);
     setDraft({ ...item });
     setOpen(true);
   }
   async function save() {
     if (!draft) return;
+    const validationMessage = validateKnowledgeItem({
+      code: draft.code,
+      name: draft.name,
+      prefix: "G",
+      entity: "gejala",
+      existingCodes: items.map((item) => item.code),
+      editingCode,
+    });
+    if (validationMessage) {
+      toast.error(validationMessage);
+      return;
+    }
+
+    const normalizedDraft: Symptom = {
+      ...draft,
+      code: draft.code.trim().toUpperCase(),
+      name: draft.name.trim(),
+    };
+
     setSaving(true);
     try {
-      await kb.saveSymptom(draft);
+      await kb.saveSymptom(normalizedDraft);
       setItems(await kb.listSymptoms());
       setOpen(false);
+      setEditingCode(null);
       toast.success("Gejala berhasil disimpan.");
     } catch {
       toast.error("Gagal menyimpan gejala. Coba lagi.");
@@ -142,18 +171,18 @@ function SymptomTab() {
         onOpenChange={setOpen}
         title={draft && items.some((i) => i.code === draft.code) ? "Edit Gejala" : "Tambah Gejala"}
         onSubmit={save}
-        submitDisabled={!draft?.name}
+        submitDisabled={!draft || !draft.code.trim() || !draft.name.trim()}
         loading={saving}
       >
         {draft ? (
           <>
             <div className="space-y-2">
-              <Label>Kode Gejala</Label>
-              <Input value={draft.code} onChange={(e) => setDraft({ ...draft, code: e.target.value })} />
+              <Label htmlFor="symptom-code">Kode Gejala</Label>
+              <Input id="symptom-code" value={draft.code} onChange={(e) => setDraft({ ...draft, code: e.target.value.toUpperCase() })} />
             </div>
             <div className="space-y-2">
-              <Label>Nama Gejala</Label>
-              <Input value={draft.name} placeholder="Masukkan nama gejala" onChange={(e) => setDraft({ ...draft, name: e.target.value })} />
+              <Label htmlFor="symptom-name">Nama Gejala</Label>
+              <Input id="symptom-name" value={draft.name} placeholder="Masukkan nama gejala" onChange={(e) => setDraft({ ...draft, name: e.target.value })} />
             </div>
             <StatusField value={draft.status} onChange={(status) => setDraft({ ...draft, status })} />
           </>
@@ -170,6 +199,7 @@ function RecommendationTab() {
   const [saving, setSaving] = useState(false);
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<Recommendation | null>(null);
+  const [editingCode, setEditingCode] = useState<string | null>(null);
 
   useEffect(() => {
     kb.listRecommendations().then((d) => {
@@ -179,20 +209,43 @@ function RecommendationTab() {
   }, []);
 
   function add() {
+    setEditingCode(null);
     setDraft({ code: nextCode("O", items.map((i) => i.code)), name: "", description: "", status: "aktif" });
     setOpen(true);
   }
   function edit(item: Recommendation) {
+    setEditingCode(item.code);
     setDraft({ ...item });
     setOpen(true);
   }
   async function save() {
     if (!draft) return;
+    const validationMessage = validateKnowledgeItem({
+      code: draft.code,
+      name: draft.name,
+      prefix: "O",
+      entity: "rekomendasi",
+      existingCodes: items.map((item) => item.code),
+      editingCode,
+    });
+    if (validationMessage) {
+      toast.error(validationMessage);
+      return;
+    }
+
+    const normalizedDraft: Recommendation = {
+      ...draft,
+      code: draft.code.trim().toUpperCase(),
+      name: draft.name.trim(),
+      description: draft.description?.trim() ?? "",
+    };
+
     setSaving(true);
     try {
-      await kb.saveRecommendation(draft);
+      await kb.saveRecommendation(normalizedDraft);
       setItems(await kb.listRecommendations());
       setOpen(false);
+      setEditingCode(null);
       toast.success("Rekomendasi berhasil disimpan.");
     } catch {
       toast.error("Gagal menyimpan rekomendasi. Coba lagi.");
@@ -237,22 +290,22 @@ function RecommendationTab() {
         onOpenChange={setOpen}
         title={draft && items.some((i) => i.code === draft.code) ? "Edit Rekomendasi" : "Tambah Rekomendasi"}
         onSubmit={save}
-        submitDisabled={!draft?.name}
+        submitDisabled={!draft || !draft.code.trim() || !draft.name.trim()}
         loading={saving}
       >
         {draft ? (
           <>
             <div className="space-y-2">
-              <Label>Kode Rekomendasi</Label>
-              <Input value={draft.code} onChange={(e) => setDraft({ ...draft, code: e.target.value })} />
+              <Label htmlFor="recommendation-code">Kode Rekomendasi</Label>
+              <Input id="recommendation-code" value={draft.code} onChange={(e) => setDraft({ ...draft, code: e.target.value.toUpperCase() })} />
             </div>
             <div className="space-y-2">
-              <Label>Nama Rekomendasi</Label>
-              <Input value={draft.name} placeholder="Masukkan nama rekomendasi" onChange={(e) => setDraft({ ...draft, name: e.target.value })} />
+              <Label htmlFor="recommendation-name">Nama Rekomendasi</Label>
+              <Input id="recommendation-name" value={draft.name} placeholder="Masukkan nama rekomendasi" onChange={(e) => setDraft({ ...draft, name: e.target.value })} />
             </div>
             <div className="space-y-2">
-              <Label>Deskripsi</Label>
-              <Textarea value={draft.description ?? ""} placeholder="Deskripsi singkat" onChange={(e) => setDraft({ ...draft, description: e.target.value })} />
+              <Label htmlFor="recommendation-description">Deskripsi</Label>
+              <Textarea id="recommendation-description" value={draft.description ?? ""} placeholder="Deskripsi singkat" onChange={(e) => setDraft({ ...draft, description: e.target.value })} />
             </div>
             <StatusField value={draft.status} onChange={(status) => setDraft({ ...draft, status })} />
           </>
@@ -271,6 +324,7 @@ function RuleTab() {
   const [saving, setSaving] = useState(false);
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<Rule | null>(null);
+  const [editingCode, setEditingCode] = useState<string | null>(null);
 
   async function refresh() {
     setItems(await kb.listRules());
@@ -286,6 +340,7 @@ function RuleTab() {
   }
 
   function add() {
+    setEditingCode(null);
     setDraft({
       code: nextCode("R", items.map((i) => i.code)),
       symptom_codes: [],
@@ -296,16 +351,33 @@ function RuleTab() {
     setOpen(true);
   }
   function edit(item: Rule) {
+    setEditingCode(item.code);
     setDraft({ ...item });
     setOpen(true);
   }
   async function save() {
     if (!draft) return;
+    const validationMessage = validateRuleDraft(
+      draft,
+      items.map((item) => item.code),
+      editingCode,
+    );
+    if (validationMessage) {
+      toast.error(validationMessage);
+      return;
+    }
+
+    const normalizedDraft: Rule = {
+      ...draft,
+      code: draft.code.trim().toUpperCase(),
+    };
+
     setSaving(true);
     try {
-      await kb.saveRule(draft);
+      await kb.saveRule(normalizedDraft);
       await refresh();
       setOpen(false);
+      setEditingCode(null);
       toast.success("Rule berhasil disimpan.");
     } catch {
       toast.error("Gagal menyimpan rule. Coba lagi.");
@@ -372,14 +444,14 @@ function RuleTab() {
         title={draft && items.some((i) => i.code === draft.code) ? "Edit Rule" : "Tambah Rule"}
         description="Tentukan gejala pemicu, rekomendasi, dan nilai CF pakar."
         onSubmit={save}
-        submitDisabled={!draft || draft.symptom_codes.length === 0 || !draft.recommendation_code}
+        submitDisabled={!draft || !draft.code.trim() || draft.symptom_codes.length === 0 || !draft.recommendation_code}
         loading={saving}
       >
         {draft ? (
           <>
             <div className="space-y-2">
-              <Label>Kode Rule</Label>
-              <Input value={draft.code} onChange={(e) => setDraft({ ...draft, code: e.target.value })} />
+              <Label htmlFor="rule-code">Kode Rule</Label>
+              <Input id="rule-code" value={draft.code} onChange={(e) => setDraft({ ...draft, code: e.target.value.toUpperCase() })} />
             </div>
             <div className="space-y-2">
               <Label>Gejala Terkait</Label>
@@ -397,9 +469,9 @@ function RuleTab() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Rekomendasi</Label>
+              <Label htmlFor="rule-recommendation">Rekomendasi</Label>
               <Select value={draft.recommendation_code} onValueChange={(v) => setDraft({ ...draft, recommendation_code: v })}>
-                <SelectTrigger>
+                <SelectTrigger id="rule-recommendation">
                   <SelectValue placeholder="Pilih rekomendasi" />
                 </SelectTrigger>
                 <SelectContent>
@@ -501,7 +573,7 @@ function CFTab() {
 function rowActions(onEdit: () => void, onDelete: () => void, label: string) {
   return (
     <div className="flex justify-end gap-1">
-      <Button variant="ghost" size="icon" onClick={onEdit} aria-label="Edit">
+      <Button variant="ghost" size="icon" className="size-11" onClick={onEdit} aria-label="Edit">
         <Pencil className="size-4" />
       </Button>
       <ConfirmDialog
@@ -512,7 +584,7 @@ function rowActions(onEdit: () => void, onDelete: () => void, label: string) {
           <Button
             variant="ghost"
             size="icon"
-            className="text-destructive hover:text-destructive"
+            className="size-11 text-destructive hover:text-destructive"
             aria-label="Hapus"
           >
             <Trash2 className="size-4" />
@@ -581,6 +653,62 @@ function CFInput({
         </p>
       ) : null}
     </div>
+  );
+}
+
+function validateKnowledgeItem({
+  code,
+  name,
+  prefix,
+  entity,
+  existingCodes,
+  editingCode,
+}: {
+  code: string;
+  name: string;
+  prefix: "G" | "O";
+  entity: string;
+  existingCodes: string[];
+  editingCode: string | null;
+}): string | null {
+  const normalizedCode = code.trim().toUpperCase();
+  if (!codePatterns[prefix].test(normalizedCode)) {
+    return `Kode ${entity} harus memakai format ${prefix}01, ${prefix}02, dan seterusnya.`;
+  }
+  if (!name.trim()) return `Nama ${entity} tidak boleh kosong.`;
+  if (isDuplicateCode(normalizedCode, existingCodes, editingCode)) {
+    return `Kode ${normalizedCode} sudah digunakan.`;
+  }
+  return null;
+}
+
+function validateRuleDraft(
+  draft: Rule,
+  existingCodes: string[],
+  editingCode: string | null,
+): string | null {
+  const normalizedCode = draft.code.trim().toUpperCase();
+  if (!codePatterns.R.test(normalizedCode)) {
+    return "Kode rule harus memakai format R01, R02, dan seterusnya.";
+  }
+  if (isDuplicateCode(normalizedCode, existingCodes, editingCode)) {
+    return `Kode ${normalizedCode} sudah digunakan.`;
+  }
+  if (draft.symptom_codes.length === 0) return "Rule harus memiliki minimal satu gejala.";
+  if (!draft.recommendation_code) return "Rekomendasi wajib dipilih.";
+  if (draft.cf_pakar < 0 || draft.cf_pakar > 1) return "Nilai CF harus di antara 0.00 dan 1.00.";
+  return null;
+}
+
+function isDuplicateCode(
+  code: string,
+  existingCodes: string[],
+  editingCode: string | null,
+): boolean {
+  return existingCodes.some(
+    (existingCode) =>
+      existingCode.toUpperCase() === code &&
+      existingCode.toUpperCase() !== editingCode?.toUpperCase(),
   );
 }
 

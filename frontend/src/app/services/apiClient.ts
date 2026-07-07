@@ -3,13 +3,13 @@
 // Frontend membaca URL backend dari VITE_API_URL. Jika env belum diisi,
 // fallback lokal memakai FastAPI pada port 8000.
 
-export const BASE_URL: string =
-  import.meta.env.VITE_API_URL ?? "http://localhost:8000";
+const DEFAULT_BASE_URL = "http://localhost:8000";
 
-// Simulasi latency jaringan agar UI loading state terasa realistis.
-export function delay<T>(data: T, ms = 500): Promise<T> {
-  return new Promise((resolve) => setTimeout(() => resolve(data), ms));
+function normalizeBaseUrl(value: string | undefined): string {
+  return (value?.trim() || DEFAULT_BASE_URL).replace(/\/+$/, "");
 }
+
+export const BASE_URL: string = normalizeBaseUrl(import.meta.env.VITE_API_URL);
 
 function getToken(): string | null {
   try {

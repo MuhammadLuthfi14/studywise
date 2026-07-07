@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
+import { PasswordInput } from "../components/PasswordInput";
 import { Label } from "../components/ui/label";
 import { Card, CardContent } from "../components/ui/card";
 import { Alert, AlertDescription } from "../components/ui/alert";
@@ -17,6 +18,9 @@ import {
 import { Logo } from "../components/Logo";
 import { useAuth } from "../context/AuthContext";
 import { getSemesterOptions, programStudiOptions } from "../utils/constants";
+
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const nimRegex = /^\d{10}$/;
 
 interface FormValues {
   nama: string;
@@ -59,13 +63,17 @@ export function RegisterPage() {
   const semesterOptions = getSemesterOptions(programStudi);
 
   async function onSubmit(values: FormValues) {
+    const nama = values.nama.trim();
+    const nim = values.nim.trim();
+    const email = values.email.trim();
+
     setError(null);
     setLoading(true);
     try {
       const user = await registerUser({
-        nama: values.nama,
-        nim: values.nim,
-        email: values.email,
+        nama,
+        nim,
+        email,
         password: values.password,
         program_studi: values.program_studi,
         semester: Number(values.semester),
@@ -117,10 +125,14 @@ export function RegisterPage() {
                 <Controller
                   name="nama"
                   control={control}
-                  rules={{ required: "Nama wajib diisi" }}
+                  rules={{
+                    required: "Nama wajib diisi",
+                    validate: (v) => v.trim().length > 0 || "Nama wajib diisi",
+                  }}
                   render={({ field }) => (
                     <Input
                       id="nama"
+                      autoComplete="name"
                       placeholder="Masukkan nama lengkap"
                       className={inputClass}
                       {...field}
@@ -137,13 +149,18 @@ export function RegisterPage() {
                   <Controller
                     name="nim"
                     control={control}
-                    rules={{ required: "NIM wajib diisi" }}
+                    rules={{
+                      required: "NIM wajib diisi",
+                      validate: (v) =>
+                        nimRegex.test(v.trim()) || "NIM harus berupa 10 digit angka",
+                    }}
                     render={({ field }) => (
                       <Input
-                        id="nim"
-                        placeholder="Contoh: 2231140012"
-                        className={inputClass}
-                        {...field}
+                      id="nim"
+                      autoComplete="username"
+                      placeholder="Contoh: 2231140012"
+                      className={inputClass}
+                      {...field}
                       />
                     )}
                   />
@@ -151,14 +168,14 @@ export function RegisterPage() {
                 </div>
 
                 <div className="space-y-1 xs:space-y-1.5">
-                  <Label className={labelClass}>Jenis Kelamin</Label>
+                  <Label htmlFor="jenis-kelamin" className={labelClass}>Jenis Kelamin</Label>
                   <Controller
                     name="jenis_kelamin"
                     control={control}
                     rules={{ required: "Jenis kelamin wajib dipilih" }}
                     render={({ field }) => (
                       <Select value={field.value} onValueChange={field.onChange}>
-                        <SelectTrigger className={selectClass}>
+                        <SelectTrigger id="jenis-kelamin" className={selectClass}>
                           <SelectValue placeholder="Pilih jenis kelamin" />
                         </SelectTrigger>
                         <SelectContent>
@@ -180,15 +197,14 @@ export function RegisterPage() {
                   control={control}
                   rules={{
                     required: "Email wajib diisi",
-                    pattern: {
-                      value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                      message: "Format email tidak valid",
-                    },
+                    validate: (v) =>
+                      emailRegex.test(v.trim()) || "Format email tidak valid",
                   }}
                   render={({ field }) => (
                     <Input
                       id="email"
                       type="email"
+                      autoComplete="email"
                       placeholder="nama@email.com"
                       className={inputClass}
                       {...field}
@@ -208,11 +224,12 @@ export function RegisterPage() {
                     rules={{
                       required: "Kata sandi wajib diisi",
                       minLength: { value: 6, message: "Minimal 6 karakter" },
+                      validate: (v) => v.trim().length >= 6 || "Minimal 6 karakter",
                     }}
                     render={({ field }) => (
-                      <Input
+                      <PasswordInput
                         id="password"
-                        type="password"
+                        autoComplete="new-password"
                         placeholder="Minimal 6 karakter"
                         className={inputClass}
                         {...field}
@@ -235,9 +252,9 @@ export function RegisterPage() {
                       validate: (v) => v === password || "Kata sandi tidak cocok",
                     }}
                     render={({ field }) => (
-                      <Input
+                      <PasswordInput
                         id="konfirmasi"
-                        type="password"
+                        autoComplete="new-password"
                         placeholder="Ulangi kata sandi"
                         className={inputClass}
                         {...field}
@@ -251,7 +268,7 @@ export function RegisterPage() {
               {/* Program Studi + Semester */}
               <div className="grid gap-3 xs:gap-4 sm:grid-cols-2">
                 <div className="space-y-1 xs:space-y-1.5">
-                  <Label className={labelClass}>Program Studi</Label>
+                  <Label htmlFor="program-studi" className={labelClass}>Program Studi</Label>
                   <Controller
                     name="program_studi"
                     control={control}
@@ -264,7 +281,7 @@ export function RegisterPage() {
                           setValue("semester", "");
                         }}
                       >
-                        <SelectTrigger className={selectClass}>
+                        <SelectTrigger id="program-studi" className={selectClass}>
                           <SelectValue placeholder="Pilih program studi" />
                         </SelectTrigger>
                         <SelectContent>

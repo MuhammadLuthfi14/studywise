@@ -72,3 +72,18 @@ def test_process_consultation_returns_empty_results_when_no_rule_fires() -> None
     )
 
     assert output == {"results": [], "active_rules": []}
+
+
+def test_process_consultation_ignores_zero_cf_answers() -> None:
+    output = process_consultation(
+        answers=[
+            {"symptom_code": "G02", "cf_user": 1.0},
+            {"symptom_code": "G08", "cf_user": 0.75},
+            {"symptom_code": "G09", "cf_user": 0.0},
+        ],
+        rules=RULES,
+        recommendations=RECOMMENDATIONS,
+        symptoms=SYMPTOMS,
+    )
+
+    assert output == {"results": [], "active_rules": []}

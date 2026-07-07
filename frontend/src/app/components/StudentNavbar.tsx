@@ -92,7 +92,7 @@ export function StudentNavbar() {
               <DropdownMenuTrigger asChild>
                 <button
                   aria-label={`Menu akun ${user.nama}`}
-                  className="flex items-center gap-3 rounded-full p-1 pr-3 transition-colors hover:bg-muted focus:outline-none focus:ring-2 focus:ring-sw-primary/50"
+                  className="flex min-h-11 items-center gap-3 rounded-full p-1 pr-3 transition-colors hover:bg-muted focus:outline-none focus:ring-2 focus:ring-sw-primary/50"
                 >
                   <Avatar className="size-8 shadow-sm">
                     {avatarSrc && <AvatarImage src={avatarSrc} alt={user.nama} className="object-cover" />}
@@ -153,7 +153,7 @@ export function StudentNavbar() {
           {/* Mobile Navigation */}
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="md:hidden text-foreground">
+              <Button variant="ghost" size="icon" className="size-11 text-foreground md:hidden">
                 <Menu className="size-5" />
                 <span className="sr-only">Toggle Menu</span>
               </Button>

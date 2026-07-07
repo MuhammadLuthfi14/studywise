@@ -4,6 +4,7 @@ import { GitBranch, History, RefreshCw, Save, Sparkles } from "lucide-react";
 import { PageHeader } from "../../components/PageHeader";
 import { ResultCard } from "../../components/ResultCard";
 import { ResultChart } from "../../components/ResultChart";
+import { EmptyState } from "../../components/EmptyState";
 import { Button } from "../../components/ui/button";
 import { Card, CardContent } from "../../components/ui/card";
 import { Badge } from "../../components/ui/badge";
@@ -28,11 +29,12 @@ export function ResultPage() {
   if (!current) return <Navigate to="/app/konsultasi" replace />;
 
   const { results, activeRules, saved } = current;
+  const hasResults = results.length > 0;
   const topResult = results[0];
   const activeRuleObjs = rules.filter((r) => activeRules.includes(r.code));
 
   async function handleSave() {
-    if (!user || saved) return;
+    if (!user || saved || !hasResults) return;
     setSaving(true);
     try {
       await saveConsultation({
@@ -62,6 +64,24 @@ export function ResultPage() {
         }
       />
 
+      {!hasResults ? (
+        <EmptyState
+          icon={GitBranch}
+          title="Belum Ada Rekomendasi"
+          description="Kombinasi kondisi yang dipilih belum memicu rule aktif. Silakan ulangi konsultasi dengan kondisi belajar yang paling sesuai."
+          action={
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <Button variant="outline" onClick={() => navigate("/app/konsultasi")}>
+                <RefreshCw className="size-4" /> Konsultasi Ulang
+              </Button>
+              <Button variant="outline" onClick={() => navigate("/app/riwayat")}>
+                <History className="size-4" /> Lihat Riwayat
+              </Button>
+            </div>
+          }
+        />
+      ) : (
+        <>
       {/* Ringkasan */}
       <Card className="overflow-hidden border-none bg-sw-primary text-white">
         <CardContent className="flex flex-col gap-3 p-3 xs:gap-4 xs:p-4 sm:flex-row sm:items-center sm:justify-between sm:p-6">
@@ -146,6 +166,8 @@ export function ResultPage() {
           {saved ? "Tersimpan" : saving ? "Menyimpan..." : "Simpan Hasil"}
         </Button>
       </div>
+        </>
+      )}
     </div>
   );
 }
