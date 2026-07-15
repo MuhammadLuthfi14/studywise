@@ -25,6 +25,7 @@ import {
   listRules,
 } from "../../services/knowledgeService";
 import type { Consultation, User } from "../../types";
+import { formatDateTimeWib } from "../../utils/format";
 
 export function AdminDashboard() {
   const navigate = useNavigate();
@@ -59,13 +60,8 @@ export function AdminDashboard() {
     { key: "user", header: "Mahasiswa", render: (r) => r.user_nama },
     {
       key: "date",
-      header: "Tanggal",
-      render: (r) =>
-        new Date(r.created_at).toLocaleDateString("id-ID", {
-          day: "numeric",
-          month: "short",
-          year: "numeric",
-        }),
+      header: "Tanggal dan Waktu",
+      render: (r) => formatDateTimeWib(r.created_at, "compact"),
     },
     {
       key: "rec",
@@ -158,10 +154,7 @@ export function AdminDashboard() {
                               <div className="shrink-0 text-right">
                                 <span className="font-semibold text-sm text-sw-ai">{cf}%</span>
                                 <p className="text-xs text-muted-foreground">
-                                  {new Date(c.created_at).toLocaleDateString("id-ID", {
-                                    day: "numeric",
-                                    month: "short",
-                                  })}
+                                  {formatDateTimeWib(c.created_at, "compact")}
                                 </p>
                               </div>
                             </div>

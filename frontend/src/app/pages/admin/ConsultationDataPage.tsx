@@ -20,6 +20,7 @@ import { ResultChart } from "../../components/ResultChart";
 import { getAllConsultations } from "../../services/consultationService";
 import { Alert, AlertDescription } from "../../components/ui/alert";
 import type { Consultation } from "../../types";
+import { formatDateTimeWib, wibDateKey } from "../../utils/format";
 
 export function ConsultationDataPage() {
   const [data, setData] = useState<Consultation[]>([]);
@@ -40,7 +41,7 @@ export function ConsultationDataPage() {
   const filtered = useMemo(() => {
     return data.filter((c) => {
       const matchQuery = c.user_nama.toLowerCase().includes(query.trim().toLowerCase());
-      const matchDate = !date || c.created_at.startsWith(date);
+      const matchDate = !date || wibDateKey(c.created_at) === date;
       return matchQuery && matchDate;
     });
   }, [data, query, date]);
@@ -49,13 +50,8 @@ export function ConsultationDataPage() {
     { key: "user", header: "Mahasiswa", render: (r) => r.user_nama },
     {
       key: "date",
-      header: "Tanggal",
-      render: (r) =>
-        new Date(r.created_at).toLocaleDateString("id-ID", {
-          day: "numeric",
-          month: "long",
-          year: "numeric",
-        }),
+      header: "Tanggal dan Waktu",
+      render: (r) => formatDateTimeWib(r.created_at),
     },
     { key: "rec", header: "Rekomendasi Utama", render: (r) => r.results[0]?.recommendation ?? "-" },
     {
@@ -148,13 +144,7 @@ export function ConsultationDataPage() {
             <DialogTitle>Detail Konsultasi</DialogTitle>
             <DialogDescription>
               {detail?.user_nama} ·{" "}
-              {detail
-                ? new Date(detail.created_at).toLocaleDateString("id-ID", {
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric",
-                  })
-                : ""}
+              {detail ? formatDateTimeWib(detail.created_at, "detail") : ""}
             </DialogDescription>
           </DialogHeader>
           {detail ? (
