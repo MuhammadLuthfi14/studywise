@@ -22,6 +22,7 @@ import {
 import { useAuth } from "../../context/AuthContext";
 import { getHistory } from "../../services/consultationService";
 import type { Consultation } from "../../types";
+import { formatDateTimeWib } from "../../utils/format";
 
 export function StudentDashboard() {
   const { user } = useAuth();
@@ -108,13 +109,7 @@ export function StudentDashboard() {
                 <CardContent className="space-y-4 p-5">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <Badge variant="outline">
-                      {new Date(
-                        last.created_at,
-                      ).toLocaleDateString("id-ID", {
-                        day: "numeric",
-                        month: "long",
-                        year: "numeric",
-                      })}
+                      {formatDateTimeWib(last.created_at, "compact")}
                     </Badge>
                     <Button
                       variant="ghost"

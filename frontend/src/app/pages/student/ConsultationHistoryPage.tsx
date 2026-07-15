@@ -12,14 +12,7 @@ import { Alert, AlertDescription } from "../../components/ui/alert";
 import { useAuth } from "../../context/AuthContext";
 import { getHistory } from "../../services/consultationService";
 import type { Consultation } from "../../types";
-
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("id-ID", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
-}
+import { formatDateTimeWib } from "../../utils/format";
 
 export function ConsultationHistoryPage() {
   const { user } = useAuth();
@@ -39,8 +32,8 @@ export function ConsultationHistoryPage() {
   const columns: Column<Consultation>[] = [
     {
       key: "created_at",
-      header: "Tanggal",
-      render: (row) => formatDate(row.created_at),
+      header: "Tanggal dan Waktu",
+      render: (row) => formatDateTimeWib(row.created_at),
     },
     {
       key: "top",

@@ -12,6 +12,7 @@ import { Badge } from "../../components/ui/badge";
 import { getConsultation, getSymptoms } from "../../services/consultationService";
 import { listRules } from "../../services/knowledgeService";
 import type { Consultation, Rule, Symptom } from "../../types";
+import { formatDateTimeWib } from "../../utils/format";
 
 // Skala kesesuaian CF — data statis konfigurasi, tidak bergantung backend.
 const SCALE = [
@@ -85,12 +86,7 @@ export function HistoryDetailPage() {
 
       <PageHeader
         title="Detail Konsultasi"
-        description={new Date(data.created_at).toLocaleDateString("id-ID", {
-          weekday: "long",
-          day: "numeric",
-          month: "long",
-          year: "numeric",
-        })}
+        description={formatDateTimeWib(data.created_at, "detail")}
       />
 
       <div className="grid gap-6 md:grid-cols-5">
